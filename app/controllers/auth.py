@@ -19,8 +19,13 @@ def login():
         if user and user.check_password(password):
             login_user(user)
             next_page = request.args.get('next')
+            # Validate next_page to prevent open redirect attacks
+            if next_page and (next_page.startswith('/') and not next_page.startswith('//')):
+                safe_redirect = next_page
+            else:
+                safe_redirect = url_for('products.list_products')
             flash('Login successful!', 'success')
-            return redirect(next_page or url_for('products.list_products'))
+            return redirect(safe_redirect)
         flash('Invalid username or password.', 'danger')
 
     return render_template('auth/login.html')

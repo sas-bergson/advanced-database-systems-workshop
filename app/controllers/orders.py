@@ -57,12 +57,13 @@ def create_order():
             total = 0
             for item in cart_items:
                 product = db.session.get(Product, item.product_id)
-                if not product or product.stock_quantity < item.quantity:
+                if not product:
                     db.session.rollback()
-                    flash(
-                        f'Insufficient stock for {product.name if product else "a product"}.',
-                        'danger',
-                    )
+                    flash(f'Product ID {item.product_id} no longer exists.', 'danger')
+                    return redirect(url_for('cart.view_cart'))
+                if product.stock_quantity < item.quantity:
+                    db.session.rollback()
+                    flash(f'Insufficient stock for {product.name}.', 'danger')
                     return redirect(url_for('cart.view_cart'))
 
                 order_item = OrderItem(
