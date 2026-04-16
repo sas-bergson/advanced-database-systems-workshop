@@ -1,0 +1,68 @@
+/* ===================================================
+   ShopDB — Custom Styles
+   =================================================== */
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f8f9fa;
+}
+
+.container.mt-4.mb-5 {
+    flex: 1;
+}
+
+/* Product cards */
+.product-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Navbar brand */
+.navbar-brand {
+    font-size: 1.4rem;
+    letter-spacing: 0.5px;
+}
+
+/* Status badge sizes */
+#order-status-badge {
+    font-size: 1rem !important;
+}
+
+/* Polling indicator pulse animation */
+@keyframes pulse {
+    0%   { opacity: 1; }
+    50%  { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+#polling-indicator .badge.bg-success {
+    animation: pulse 2s infinite;
+}
+
+/* Cart table */
+.table th {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Form controls */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    opacity: 1;
+}
+
+/* Alert transitions */
+.alert {
+    border-radius: 0.5rem;
+}
+
+/* Footer */
+footer {
+    margin-top: auto;
+}

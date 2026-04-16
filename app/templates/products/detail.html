@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} — ShopDB{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{{ url_for('products.list_products') }}">Products</a>
+        </li>
+        {% if product.category %}
+        <li class="breadcrumb-item text-muted">{{ product.category.name }}</li>
+        {% endif %}
+        <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+    </ol>
+</nav>
+
+<div class="row g-5">
+    <div class="col-md-5">
+        <img src="{{ product.image_url or 'https://via.placeholder.com/500x350?text=No+Image' }}"
+             class="img-fluid rounded shadow" alt="{{ product.name }}">
+    </div>
+    <div class="col-md-7">
+        <h1 class="mb-2">{{ product.name }}</h1>
+        {% if product.category %}
+        <p class="text-muted mb-3">Category: <strong>{{ product.category.name }}</strong></p>
+        {% endif %}
+        <h3 class="text-primary mb-3">${{ "%.2f"|format(product.price|float) }}</h3>
+        <p class="lead mb-4">{{ product.description or 'No description available.' }}</p>
+
+        <div class="mb-4">
+            {% if product.is_in_stock() %}
+            <span class="badge bg-success fs-6">
+                ✓ In Stock &mdash; {{ product.stock_quantity }} available
+            </span>
+            {% else %}
+            <span class="badge bg-danger fs-6">✗ Out of Stock</span>
+            {% endif %}
+        </div>
+
+        {% if current_user.is_authenticated and product.is_in_stock() %}
+        <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="input-group" style="width: 140px;">
+                <button type="button" class="btn btn-outline-secondary"
+                        onclick="changeQty(-1)">−</button>
+                <input type="number" class="form-control text-center" id="quantity"
+                       value="1" min="1" max="{{ product.stock_quantity }}">
+                <button type="button" class="btn btn-outline-secondary"
+                        onclick="changeQty(1)">+</button>
+            </div>
+            <button type="button" class="btn btn-primary btn-lg px-4"
+                    onclick="addToCart({{ product.id }})">
+                Add to Cart
+            </button>
+        </div>
+        <div id="cart-message"></div>
+        {% elif not current_user.is_authenticated %}
+        <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg px-5">
+            Login to Purchase
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function changeQty(delta) {
+    const input = document.getElementById('quantity');
+    const newVal = parseInt(input.value) + delta;
+    const max = {{ product.stock_quantity }};
+    if (newVal >= 1 && newVal <= max) {
+        input.value = newVal;
+    }
+}
+
+function addToCart(productId) {
+    const qty = parseInt(document.getElementById('quantity').value);
+    fetch('/cart/add', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({product_id: productId, quantity: qty})
+    })
+    .then(r => r.json())
+    .then(data => {
+        const msg = document.getElementById('cart-message');
+        if (data.success) {
+            msg.innerHTML = '<div class="alert alert-success py-2">✓ Item added to cart!</div>';
+            setTimeout(() => msg.innerHTML = '', 3000);
+        } else {
+            msg.innerHTML = `<div class="alert alert-danger py-2">${data.message}</div>`;
+        }
+    });
+}
+</script>
+{% endblock %}
