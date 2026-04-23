@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Shopping Cart — ShopDB{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Shopping Cart</h2>
+
+{% if cart_items %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="ps-3">Product</th>
+                            <th>Unit Price</th>
+                            <th>Quantity</th>
+                            <th>Subtotal</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in cart_items %}
+                        <tr id="cart-row-{{ item.id }}">
+                            <td class="ps-3 align-middle">
+                                <a href="{{ url_for('products.product_detail', id=item.product.id) }}"
+                                   class="text-decoration-none fw-semibold">
+                                    {{ item.product.name }}
+                                </a>
+                            </td>
+                            <td class="align-middle">${{ "%.2f"|format(item.product.price|float) }}</td>
+                            <td class="align-middle">
+                                <div class="input-group" style="width: 120px;">
+                                    <button class="btn btn-sm btn-outline-secondary"
+                                            onclick="updateQty({{ item.id }}, {{ item.quantity - 1 }})">−</button>
+                                    <input type="number" class="form-control form-control-sm text-center"
+                                           value="{{ item.quantity }}" min="0"
+                                           onchange="updateQty({{ item.id }}, this.value)">
+                                    <button class="btn btn-sm btn-outline-secondary"
+                                            onclick="updateQty({{ item.id }}, {{ item.quantity + 1 }})">+</button>
+                                </div>
+                            </td>
+                            <td class="align-middle fw-semibold">
+                                ${{ "%.2f"|format((item.product.price|float) * item.quantity) }}
+                            </td>
+                            <td class="align-middle pe-3">
+                                <button class="btn btn-sm btn-outline-danger"
+                                        onclick="removeItem({{ item.id }})">Remove</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">Order Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="fs-5">Total</span>
+                    <span class="fs-5 fw-bold text-primary">${{ "%.2f"|format(total) }}</span>
+                </div>
+                <form action="{{ url_for('orders.create_order') }}" method="POST">
+                    <button type="submit" class="btn btn-success w-100 btn-lg">
+                        Checkout →
+                    </button>
+                </form>
+                <a href="{{ url_for('products.list_products') }}"
+                   class="btn btn-outline-secondary w-100 mt-2">Continue Shopping</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <p class="lead text-muted">Your cart is empty.</p>
+    <a href="{{ url_for('products.list_products') }}" class="btn btn-primary btn-lg px-5">
+        Browse Products
+    </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateQty(itemId, qty) {
+    qty = parseInt(qty);
+    if (isNaN(qty) || qty < 0) return;
+    fetch('/cart/update', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({item_id: itemId, quantity: qty})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message);
+        }
+    });
+}
+
+function removeItem(itemId) {
+    if (!confirm('Remove this item from your cart?')) return;
+    fetch('/cart/remove', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({item_id: itemId})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message);
+        }
+    });
+}
+</script>
+{% endblock %}
