@@ -1,0 +1,123 @@
+name: Generate and Deploy Documentation
+
+on:
+  push:
+    branches:
+      - main
+      - docs/automated-documentation-system
+    paths:
+      - "app/**"
+      - "database/**"
+      - "docs/**"
+      - "requirements.txt"
+      - "mkdocs.yml"
+      - "scripts/generate_docs.py"
+  workflow_dispatch:
+
+jobs:
+  generate-docs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install mkdocs mkdocs-material pymdown-extensions mkdocs-minify
+
+      - name: Generate documentation
+        run: |
+          python scripts/generate_docs.py
+
+      - name: Build MkDocs
+        run: |
+          mkdocs build --strict
+
+      - name: Upload docs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation
+          path: site/
+          retention-days: 30
+
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          force_orphan: true
+          user_name: "Documentation Bot"
+          user_email: "docs@github.com"
+          commit_message: "docs: auto-generated documentation"
+
+      - name: Commit documentation updates
+        if: github.ref == 'refs/heads/docs/automated-documentation-system'
+        run: |
+          git config user.name "Documentation Bot"
+          git config user.email "docs@github.com"
+          git add docs/ mkdocs.yml
+          if git diff-index --quiet HEAD --; then
+            echo "No documentation changes"
+          else
+            git commit -m "docs: auto-generated documentation from source code"
+            git push
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  test-docs-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install mkdocs mkdocs-material pymdown-extensions mkdocs-minify
+
+      - name: Validate documentation structure
+        run: |
+          mkdocs build --strict --verbose
+
+      - name: Check for broken links
+        run: |
+          pip install linkchecker
+          linkchecker site/ || true
+
+  notify-status:
+    needs: [generate-docs, test-docs-build]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Check job status
+        run: |
+          if [ "${{ needs.generate-docs.result }}" = "failure" ] || [ "${{ needs.test-docs-build.result }}" = "failure" ]; then
+            echo "❌ Documentation generation failed"
+            exit 1
+          else
+            echo "✅ Documentation successfully generated and deployed"
+          fi
