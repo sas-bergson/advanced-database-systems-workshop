@@ -1,0 +1,101 @@
+site_name: ShopDB - Advanced E-commerce Database System
+site_description: Complete documentation for the Flask + PostgreSQL e-commerce platform
+site_author: ICT 3212 Advanced Database Systems Workshop
+site_url: https://your-org.github.io/advanced-database-systems-workshop/
+
+docs_dir: docs
+site_dir: site
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Configuration: getting-started/configuration.md
+      - Quick Start: getting-started/quick-start.md
+  - Architecture:
+      - System Overview: architecture/overview.md
+      - MVC Pattern: architecture/mvc-pattern.md
+      - Database Design: architecture/database-design.md
+  - Database:
+      - Schema Documentation: database/schema.md
+      - Stored Procedures: database/stored-procedures.md
+      - Materialized Views: database/materialized-views.md
+      - Indexing Strategy: database/indexing.md
+  - API:
+      - Authentication: api/authentication.md
+      - Products: api/products.md
+      - Orders: api/orders.md
+      - Cart: api/cart.md
+      - Users: api/users.md
+  - Models:
+      - User Model: models/user.md
+      - Product Model: models/product.md
+      - Order Model: models/order.md
+      - Cart Model: models/cart.md
+  - Development:
+      - Testing: development/testing.md
+      - Contributing: development/contributing.md
+      - Performance Tuning: development/performance.md
+  - Deployment:
+      - Docker: deployment/docker.md
+      - Production Setup: deployment/production.md
+      - CI/CD Pipeline: deployment/cicd.md
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: blue
+      accent: orange
+      toggle:
+        icon: material/toggle-on
+        name: Switch to dark mode
+    - scheme: slate
+      primary: blue
+      accent: orange
+      toggle:
+        icon: material/toggle-off
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+
+plugins:
+  - search:
+      lang: en
+  - minify:
+      minify_html: true
+      minify_css: true
+      minify_js: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: pymdownx.emoji.twemoji
+      emoji_generator: pymdownx.emoji.to_svg
+  - tables
+  - toc:
+      permalink: true
+  - attr_list
+
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com
+    - icon: fontawesome/brands/linkedin
+      link: https://linkedin.com
+
+copyright: Copyright &copy; 2024 ICT 3212 Advanced Database Systems Workshop
